@@ -9,7 +9,7 @@ repository = "https://github.com/jostlowe/embedded-kalman.git"
 homepage =  "https://github.com/jostlowe/embedded-kalman.git"
 license = "MIT"
 description = "A Kalman Filtering library designed for use in low-resource embedded systems"
-keywords = ["state estimation", "kalman filter"]
+keywords = ["estimation", "kalman"]
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
