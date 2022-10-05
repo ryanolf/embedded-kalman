@@ -116,9 +116,6 @@ struct Update<T, const Nx: usize, const Nz: usize>
 
     // State Vector
     x_posterior: SVector<T, Nx>,
-
-    // Kalman gain
-    K: SMatrix<T, Nx, Nz>,
 }
 
 /// A marker trait to indicate what state the Kalman filter is currently in
@@ -257,7 +254,6 @@ KalmanFilter<T, Nx, Nz, Nu, Update<T, Nx, Nx>>
             state: Update {
                 x_posterior: x0,
                 P_posterior: P0,
-                K: SMatrix::identity(),
             },
         }
     }
@@ -301,7 +297,6 @@ KalmanFilter<T, Nx, Nz, Nu, Predict<T, Nx, Nx>>
             state: Update {
                 P_posterior,
                 x_posterior,
-                K,
             },
         })
     }
