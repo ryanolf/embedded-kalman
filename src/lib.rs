@@ -166,7 +166,7 @@ impl<T, const Nx: usize, const Nz: usize> State for Update<T, Nx, Nz> where T: R
 /// **embedded-kalman** can infer the dimensions of the matrices in the parameters in most cases.
 /// If the dimensions of the matrices do not match, the Kalman Filter won't compile
 ///
-/// Two main methods are used to iterate the KalmanFilter: [KalmanFilter::update] and [KalmanFilter::predict].
+/// Two main methods are used to iterate the KalmanFilter: [update](KalmanFilter::update) and [predict](KalmanFilter::predict).
 ///
 /// ```
 /// use embedded_kalman::KalmanFilter;
@@ -176,15 +176,15 @@ impl<T, const Nx: usize, const Nz: usize> State for Update<T, Nx, Nz> where T: R
 ///     .update(Vector2::new(1.0, 0.0)) // Update the state from a given measurement
 ///     .expect("Innovation matrix cannot be inverted");
 /// ```
-/// If the Kalman Filter is in the `Update` state, only the `predict` method is available.
-/// If the filter is in the `Predict` state, only the `update` method is available, preserving
+/// If the Kalman Filter is in the `Update` state, only the [predict](KalmanFilter::predict) method is available.
+/// If the filter is in the `Predict` state, only the [update](KalmanFilter::update) method is available, preserving
 /// the 2-step recurrent nature of the Kalman Filter.
 ///
-/// The update method is failable and might return [Option::None] if the innovation matrix is
+/// The update method is failable and might return [None](Option::None) if the innovation matrix is
 /// non-invertible. This happens due to rounding errors when the process noise covariance `Q` is small,
-/// and is rare.
-/// The prior state and state covariance can be fetched after the `predict` stage
-/// The posterior state and state covariance can be fetched after the `update` stage
+/// and happens very rarely.
+/// The prior state and state covariance can be fetched after the `Predict` stage.
+/// The posterior state and state covariance can be fetched after the `Update` stage.
 ///
 /// ```
 /// use embedded_kalman::KalmanFilter;
