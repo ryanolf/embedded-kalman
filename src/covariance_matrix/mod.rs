@@ -2,15 +2,20 @@
 A module that defines a covariance matrix type for use in Kalman Filters
 */
 
+mod tests;
+
 use nalgebra::{RealField, SMatrix};
 
-/// A NewType Wrapper for a square matrix, that ensures that the wrapped matrix
-/// always is a covariance matrix. A covariance matrix is always positive definite
+/// A new-type wrapper for a square matrix, that ensures that the wrapped matrix
+/// always is a covariance matrix.
+///
+/// A covariance matrix is always positive definite
 /// and symmetric. [CovarianceMatrix] implements the [TryFrom] trait for any square matrix.
 /// A simple way to make a covariance matrix is:
 ///
 /// ```
 /// use nalgebra::{Matrix2};
+/// use embedded_kalman::CovarianceMatrix;
 /// let matrix = Matrix2::new(1.0, 0.0, 0.0, 1.0);
 /// let cov: CovarianceMatrix<_, 2> = matrix
 ///     .try_into()
@@ -43,37 +48,3 @@ impl<T: RealField, const N: usize> TryFrom<SMatrix<T, N, N>> for CovarianceMatri
     }
 }
 
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use nalgebra::Matrix2;
-
-
-    #[test]
-    fn valid_covariance_matrix() {
-        let cov: Result<CovarianceMatrix<_, 2>, Error> =
-            Matrix2::new(1.0, 0.0, 0.0, 1.0)
-                .try_into();
-
-        assert!(cov.is_ok())
-    }
-
-    #[test]
-    fn non_symmetric_covariance_matrix() {
-        let cov: Result<CovarianceMatrix<_, 2>, Error> =
-            Matrix2::new(1.0, -1.0, 0.0, 1.0)
-                .try_into();
-
-        assert_eq!(cov, Err(Error::NotSymmetric))
-    }
-
-    #[test]
-    fn non_positive_definite_covariance_matrix() {
-        let cov: Result<CovarianceMatrix<_, 2>, Error> =
-            Matrix2::new(1.0, 1.0, 1.0, 1.0)
-                .try_into();
-
-        assert_eq!(cov, Err(Error::NotPositiveDefinite))
-    }
-}
