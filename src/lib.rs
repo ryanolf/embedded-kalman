@@ -52,7 +52,7 @@ Simply add the following to your `Cargo.toml` file:
 
 ```ignore
 [dependencies]
-embedded-kalman = "0.1.0"
+embedded-kalman = "0.2.0"
 ```
 
 ## Implemented Filters
@@ -62,7 +62,6 @@ embedded-kalman = "0.1.0"
 
 
 #![deny(
-    missing_docs,
     missing_debug_implementations,
     missing_copy_implementations,
     trivial_casts,
@@ -77,7 +76,11 @@ embedded-kalman = "0.1.0"
 #![allow(non_upper_case_globals)]
 #![no_std]
 
+
+pub mod covariance_matrix;
+
 use nalgebra::{RealField, SMatrix, SVector};
+pub use crate::covariance_matrix::CovarianceMatrix;
 
 #[derive(Debug)]
 struct Constants<T, const Nx: usize, const Nz: usize, const Nu: usize> {
@@ -152,19 +155,22 @@ impl<T, const Nx: usize, const Nz: usize> State for Update<T, Nx, Nz> where T: R
 ///
 /// ```
 /// use embedded_kalman::KalmanFilter;
-/// use nalgebra::{SMatrix, SVector};
+/// use nalgebra::{SMatrix, SVector, Matrix2};
 /// let kf: KalmanFilter<f64, 2, 2, 2, _> = KalmanFilter::new(
 ///     SMatrix::identity(), // A
 ///     SMatrix::identity(), // B
 ///     SMatrix::identity(), // H
-///     SMatrix::identity(), // Q
-///     SMatrix::identity(), // R
-///     SVector::zeros(),    // x0
-///     SMatrix::identity(), // P0
+///     Matrix2::identity().try_into().expect("Q is not a valid covariance Matrix"),
+///     Matrix2::identity().try_into().expect("R is not a valid covariance Matrix"),
+///     SVector::zeros(),
+///     Matrix2::identity().try_into().expect("P0 is not a valid covariance Matrix"),
 /// );
 /// ```
 /// **embedded-kalman** can infer the dimensions of the matrices in the parameters in most cases.
-/// If the dimensions of the matrices do not match, the Kalman Filter won't compile
+/// If the dimensions of the matrices do not match, the Kalman Filter won't compile. Note the use of the
+/// `try_into` method. `Q`, `R` and `P0` are required to be valid covariance matrices.
+/// **embedded-kalman** exposes its own [`CovarianceMatrix`] type, which implements [`TryFrom`] for
+/// any square matrix.
 ///
 /// Two main methods are used to iterate the KalmanFilter: [update](KalmanFilter::update) and [predict](KalmanFilter::predict).
 ///
@@ -244,16 +250,16 @@ KalmanFilter<T, Nx, Nz, Nu, Update<T, Nx, Nx>>
         F: SMatrix<T, Nx, Nx>,
         B: SMatrix<T, Nx, Nu>,
         H: SMatrix<T, Nz, Nx>,
-        Q: SMatrix<T, Nx, Nx>,
-        R: SMatrix<T, Nz, Nz>,
+        Q: CovarianceMatrix<T, Nx>,
+        R: CovarianceMatrix<T, Nz>,
         x0: SVector<T, Nx>,
-        P0: SMatrix<T, Nx, Nx>,
+        P0: CovarianceMatrix<T, Nx>,
     ) -> Self {
         Self {
-            constants: Constants { F, B, H, Q, R },
+            constants: Constants { F, B, H, Q: Q.0, R: R.0 },
             state: Update {
                 x_posterior: x0,
-                P_posterior: P0,
+                P_posterior: P0.0,
             },
         }
     }
@@ -306,18 +312,18 @@ KalmanFilter<T, Nx, Nz, Nu, Predict<T, Nx, Nx>>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nalgebra::Vector2;
+    use nalgebra::{Matrix2, Vector2};
 
     #[test]
-    fn it_works() {
+    fn kalman_filter_works() {
         let kf: KalmanFilter<f64, 2, 2, 2, _> = KalmanFilter::new(
             SMatrix::identity(),
             SMatrix::identity(),
             SMatrix::identity(),
-            SMatrix::identity(),
-            SMatrix::identity(),
+            Matrix2::identity().try_into().expect("Q is not a valid covariance Matrix"),
+            Matrix2::identity().try_into().expect("R is not a valid covariance Matrix"),
             SVector::zeros(),
-            SMatrix::identity(),
+            Matrix2::identity().try_into().expect("P0 is not a valid covariance Matrix"),
         );
 
         let (_x, _P) = kf
