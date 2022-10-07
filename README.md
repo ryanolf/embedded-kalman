@@ -14,7 +14,7 @@ linear time-invariant systems. Future versions are planned to contain:
 * Kalman filter varieties for non-linear systems such as the Extended Kalman Filter (EKF) and the Unscented Kalman Filter (UKF)
 
 ## A quick example
-```ignore
+```rust
 use embedded_kalman::KalmanFilter;
 use nalgebra::{SMatrix, SVector, Vector2};
 
@@ -55,4 +55,4 @@ embedded-kalman = "0.1.0"
 ```
 
 ## Implemented Filters
-* [Kalman Filter](KalmanFilter)
+* Kalman Filter
